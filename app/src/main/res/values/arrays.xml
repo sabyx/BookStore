@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="array_type_options">
+        <item>@string/product_unknown</item>
+        <item>@string/product_book</item>
+        <item>@string/product_magazine</item>
+    </string-array>
+</resources>
