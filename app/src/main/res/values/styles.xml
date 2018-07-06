@@ -40,12 +40,12 @@
     <style name="DefaultEditorButton">
         <item name="android:background">@color/buttonBackground</item>
         <item name="android:textColor">@color/buttonText</item>
-        <item name="android:padding">@dimen/activity_margin</item>
+        <item name="android:layout_margin">@dimen/button_margin</item>
     </style>
 
     <style name="DeleteEditorButton">
         <item name="android:background">@color/deleteButton</item>
         <item name="android:textColor">@color/deleteButtonText</item>
-        <item name="android:padding">@dimen/activity_margin</item>
+        <item name="android:layout_margin">@dimen/button_margin</item>
     </style>
 </resources>

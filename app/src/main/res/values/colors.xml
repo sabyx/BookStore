@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#3fa3b5</color>
+    <color name="colorPrimaryDark">#30949f</color>
+    <color name="colorAccent">#ffb640</color>
 
-    <color name="editorColorPrimary">#2D3640</color>
-    <color name="editorColorPrimaryDark">#394450</color>
+    <color name="editorColorPrimary">#3fb58e</color>
+    <color name="editorColorPrimaryDark">#309f69</color>
 
     <color name="buttonBackground">#e4e4e4</color>
     <color name="buttonText">#000000</color>
