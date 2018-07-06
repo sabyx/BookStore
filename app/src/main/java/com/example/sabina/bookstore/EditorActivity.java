@@ -29,12 +29,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private EditText supplierNameText;
     private EditText supplierPhoneText;
 
-    private String name;
-    private int price;
-    private int quantity;
-    private int type;
-    private String supplierName;
-    private String supplierPhone;
+    private String loadedName;
+    private int loadedPrice;
+    private int loadedQuantity;
+    private int loadedType;
+    private String loadedSupplierName;
+    private String loadedSupplierPhone;
 
     private Uri currentProductUri;
     private boolean productHasChanged = false;
@@ -217,20 +217,20 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     }
 
     private void decideChanged() {
-        boolean nameChanged = !nameText.getText().toString().equals(name);
+        boolean nameChanged = !nameText.getText().toString().equals(loadedName);
         String priceString = priceText.getText().toString();
         if (priceString.isEmpty()) {
             priceString = "0";
         }
-        boolean priceChanged = Integer.parseInt(priceString) != price;
+        boolean priceChanged = Integer.parseInt(priceString) != loadedPrice;
         String quantityString = quantityText.getText().toString();
         if (quantityString.isEmpty()) {
             quantityString = "0";
         }
-        boolean quantityChanged = Integer.parseInt(quantityString) != quantity;
-        boolean typeChanged = typeSpinner.getSelectedItemPosition() != type;
-        boolean supplierNameChanged = !supplierNameText.getText().toString().equals(supplierName);
-        boolean supplierPhoneChanged = !supplierPhoneText.getText().toString().equals(supplierPhone);
+        boolean quantityChanged = Integer.parseInt(quantityString) != loadedQuantity;
+        boolean typeChanged = typeSpinner.getSelectedItemPosition() != loadedType;
+        boolean supplierNameChanged = !supplierNameText.getText().toString().equals(loadedSupplierName);
+        boolean supplierPhoneChanged = !supplierPhoneText.getText().toString().equals(loadedSupplierPhone);
 
         productHasChanged = nameChanged || priceChanged || quantityChanged || typeChanged || supplierNameChanged
                 || supplierPhoneChanged;
@@ -390,20 +390,20 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             int supplierNameColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN);
             int supplierPhoneColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN);
 
-            name = data.getString(nameColumnIndex);
-            price = data.getInt(priceColumnIndex);
-            quantity = data.getInt(quantityColumnIndex);
-            type = data.getInt(typeColumnIndex);
-            supplierName = data.getString(supplierNameColumnIndex);
-            supplierPhone = data.getString(supplierPhoneColumnIndex);
+            loadedName = data.getString(nameColumnIndex);
+            loadedPrice = data.getInt(priceColumnIndex);
+            loadedQuantity = data.getInt(quantityColumnIndex);
+            loadedType = data.getInt(typeColumnIndex);
+            loadedSupplierName = data.getString(supplierNameColumnIndex);
+            loadedSupplierPhone = data.getString(supplierPhoneColumnIndex);
 
-            nameText.setText(name);
-            priceText.setText(String.valueOf(price));
-            quantityText.setText(String.valueOf(quantity));
-            supplierNameText.setText(supplierName);
-            supplierPhoneText.setText(supplierPhone);
+            nameText.setText(loadedName);
+            priceText.setText(String.valueOf(loadedPrice));
+            quantityText.setText(String.valueOf(loadedQuantity));
+            supplierNameText.setText(loadedSupplierName);
+            supplierPhoneText.setText(loadedSupplierPhone);
 
-            switch (type) {
+            switch (loadedType) {
                 case ProductEntry.PRODUCT_TYPE_BOOK:
                     typeSpinner.setSelection(1);
                     break;
