@@ -7,5 +7,8 @@
     <color name="editorColorPrimary">#2D3640</color>
     <color name="editorColorPrimaryDark">#394450</color>
 
+    <color name="buttonBackground">#e4e4e4</color>
+    <color name="buttonText">#000000</color>
     <color name="deleteButton">#ff0000</color>
+    <color name="deleteButtonText">#ffffff</color>
 </resources>

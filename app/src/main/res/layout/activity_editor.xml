@@ -111,16 +111,16 @@
 
             <Button
                 android:id="@+id/quantity_minus"
-                style="?android:attr/buttonBarButtonStyle"
                 android:text="@string/reduce_quantity"
+                style="DefaultEditorButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
             <Button
                 android:id="@+id/quantity_plus"
-                style="?android:attr/buttonBarButtonStyle"
                 android:text="@string/increase_quantity"
+                style="DefaultEditorButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
@@ -129,13 +129,14 @@
         <Button
             android:id="@+id/order"
             android:text="@string/order_product"
+            style="DefaultEditorButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/delete"
             android:text="@string/delete_product"
-            android:background="@color/deleteButton"
+            style="DeleteEditorButton"
             android:layout_width="match_parent"
             android:layout_gravity="end"
             android:layout_height="wrap_content" />
