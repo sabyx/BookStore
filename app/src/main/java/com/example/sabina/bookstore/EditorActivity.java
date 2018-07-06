@@ -2,11 +2,7 @@ package com.example.sabina.bookstore;
 
 import android.app.AlertDialog;
 import android.app.LoaderManager;
-import android.content.ContentValues;
-import android.content.CursorLoader;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.Loader;
+import android.content.*;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,14 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.Toast;
-
-import com.example.sabina.bookstore.data.BookCursorAdapter;
-import com.example.sabina.bookstore.data.BookStoreContract;
+import android.widget.*;
+import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
 
 public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -40,36 +30,22 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private Uri currentProductUri;
     private BookCursorAdapter adapter;
-    private Intent intent;
-
-    private String[] projection = {
-            BookStoreContract.ProductEntry._ID,
-            BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN,
-            BookStoreContract.ProductEntry.PRICE_COLUMN,
-            BookStoreContract.ProductEntry.QUANTITY_COLUMN,
-            BookStoreContract.ProductEntry.PRODUCT_TYPE_COLUMN,
-            BookStoreContract.ProductEntry.SUPPLIER_NAME_COLUMN,
-            BookStoreContract.ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN
-    };
 
     private boolean productHasChanged = false;
-    private int productType = BookStoreContract.ProductEntry.PRODUCT_TYPE_BOOK;
+    private int productType = ProductEntry.PRODUCT_TYPE_UNKNOWN;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        intent = getIntent();
+        Intent intent = getIntent();
         currentProductUri = intent.getData();
         adapter = new BookCursorAdapter(this, null);
 
-        setEditorTitle();
+        setupMode();
         initViews();
-        initTouchListener();
         setupSpinner();
-
-        getLoaderManager().initLoader(URI_LOADER, null, this);
     }
 
     private void setupSpinner() {
@@ -84,31 +60,39 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
                     if (selection.equals(getString(R.string.product_book))) {
-                        productType = BookStoreContract.ProductEntry.PRODUCT_TYPE_BOOK;
+                        productType = ProductEntry.PRODUCT_TYPE_BOOK;
                     } else if (selection.equals(getString(R.string.product_magazine))) {
-                        productType = BookStoreContract.ProductEntry.PRODUCT_TYPE_MAGAZINE;
+                        productType = ProductEntry.PRODUCT_TYPE_MAGAZINE;
                     } else {
-                        productType = BookStoreContract.ProductEntry.PRODUCT_TYPE_UNKNOWN;
+                        productType = ProductEntry.PRODUCT_TYPE_UNKNOWN;
                     }
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                productType = BookStoreContract.ProductEntry.PRODUCT_TYPE_UNKNOWN;
+                productType = ProductEntry.PRODUCT_TYPE_UNKNOWN;
             }
         });
     }
 
-    private void setEditorTitle() {
+    private void setupMode() {
         if (currentProductUri == null) {
             setTitle(R.string.editor_view_add_product);
         } else {
             setTitle(R.string.editor_view_edit_product);
+            getLoaderManager().initLoader(URI_LOADER, null, this);
         }
     }
 
-    private void initTouchListener() {
+    private void initViews() {
+        nameText = (EditText) findViewById(R.id.edit_product_name);
+        priceText = (EditText) findViewById(R.id.edit_product_price);
+        quantityText = (EditText) findViewById(R.id.edit_product_quantity);
+        typeSpinner = (Spinner) findViewById(R.id.spinner_type);
+        supplierNameText = (EditText) findViewById(R.id.edit_supplier_name);
+        supplierPhoneText = (EditText) findViewById(R.id.edit_supplier_phone);
+
         View.OnTouchListener touchListener = new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -122,15 +106,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         typeSpinner.setOnTouchListener(touchListener);
         supplierNameText.setOnTouchListener(touchListener);
         supplierPhoneText.setOnTouchListener(touchListener);
-    }
-
-    private void initViews() {
-        nameText = findViewById(R.id.edit_product_name);
-        priceText = findViewById(R.id.edit_product_price);
-        quantityText = findViewById(R.id.edit_product_quantity);
-        typeSpinner = findViewById(R.id.spinner_type);
-        supplierNameText = findViewById(R.id.edit_supplier_name);
-        supplierPhoneText = findViewById(R.id.edit_supplier_phone);
     }
 
     @Override
@@ -183,6 +158,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 boolean close = saveProduct();
                 if (close) {
                     finish();
+                } else {
+                    showDiscardDialog();
                 }
                 return true;
             case android.R.id.home:
@@ -221,32 +198,22 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             quantity = Integer.parseInt(quantityString);
         }
 
-        boolean continueOperation = true;
-        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(supplierName)
+        if (currentProductUri == null || TextUtils.isEmpty(name) || TextUtils.isEmpty(supplierName)
                 || price <= 0 || quantity <= 0 || TextUtils.isEmpty(supplierPhone)) {
-            continueOperation = false;
+            return false;
         }
 
-        if (continueOperation) {
-            ContentValues values = new ContentValues();
-            values.put(BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN, name);
-            values.put(BookStoreContract.ProductEntry.PRICE_COLUMN, price);
-            values.put(BookStoreContract.ProductEntry.QUANTITY_COLUMN, quantity);
-            values.put(BookStoreContract.ProductEntry.SUPPLIER_NAME_COLUMN, supplierName);
-            values.put(BookStoreContract.ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN, supplierPhone);
+        ContentValues values = new ContentValues();
+        values.put(ProductEntry.PRODUCT_NAME_COLUMN, name);
+        values.put(ProductEntry.PRODUCT_PRICE_COLUMN, price);
+        values.put(ProductEntry.PRODUCT_QUANTITY_COLUMN, quantity);
+        values.put(ProductEntry.PRODUCT_TYPE_COLUMN, productType);
+        values.put(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN, supplierName);
+        values.put(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN, supplierPhone);
 
-            int rowsAffected = 0;
-
-            if (currentProductUri == null) {
-                Uri newUri = getContentResolver().insert(BookStoreContract.ProductEntry.CONTENT_URI, values);
-                if (newUri != null) {
-                    rowsAffected = 1;
-                }
-            } else {
-                rowsAffected = getContentResolver().update(currentProductUri, values, null, null);
-            }
-
-            if (rowsAffected == 0) {
+        if (currentProductUri == null) {
+            Uri newUri = getContentResolver().insert(ProductEntry.CONTENT_URI, values);
+            if (newUri == null) {
                 Toast.makeText(this, getString(R.string.editor_insert_product_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
@@ -254,40 +221,50 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                         Toast.LENGTH_SHORT).show();
             }
         } else {
-            showDiscardDialog();
+            int rowsAffected = getContentResolver().update(currentProductUri, values, null, null);
+            if (rowsAffected == 0) {
+                Toast.makeText(this, getString(R.string.editor_update_product_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.editor_update_product_successful),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
 
-        return continueOperation;
+        return true;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        switch (id) {
-            case URI_LOADER:
-                if (currentProductUri == null) {
-                    return new CursorLoader(this, BookStoreContract.ProductEntry.CONTENT_URI,
-                            projection, null, null, null);
-                } else {
-                    return new CursorLoader(this, currentProductUri, projection,
-                            null, null, null);
-                }
-        }
-        return null;
+//        switch (id) {
+//            case URI_LOADER:
+//                if (currentProductUri == null) {
+//                    return new CursorLoader(this, ProductEntry.CONTENT_URI,
+//                            ProductEntry.EDITOR_PROJECTION, null, null, null);
+//                } else {
+//                    return new CursorLoader(this, currentProductUri, ProductEntry.EDITOR_PROJECTION,
+//                            null, null, null);
+//                }
+//        }
+//        return null;
+
+        return new CursorLoader(this, currentProductUri, ProductEntry.EDITOR_PROJECTION,
+                null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data.moveToFirst()) {
-            if (currentProductUri == null) {
-                return;
-            }
+        if (data == null || data.getCount() < 1) {
+            return;
+        }
 
-            int nameColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN);
-            int priceColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.PRICE_COLUMN);
-            int quantityColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.QUANTITY_COLUMN);
-            int typeColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.PRODUCT_TYPE_COLUMN);
-            int supplierNameColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.SUPPLIER_NAME_COLUMN);
-            int supplierPhoneColumnIndex = data.getColumnIndex(BookStoreContract.ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN);
+        if (data.moveToFirst()) {
+            int nameColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_NAME_COLUMN);
+            int priceColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_PRICE_COLUMN);
+            int quantityColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_QUANTITY_COLUMN);
+            int typeColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_TYPE_COLUMN);
+            int supplierNameColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN);
+            int supplierPhoneColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN);
 
             String name = data.getString(nameColumnIndex);
             int price = data.getInt(priceColumnIndex);
@@ -303,10 +280,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             supplierPhoneText.setText(supplierPhone);
 
             switch (type) {
-                case BookStoreContract.ProductEntry.PRODUCT_TYPE_BOOK:
+                case ProductEntry.PRODUCT_TYPE_BOOK:
                     typeSpinner.setSelection(1);
                     break;
-                case BookStoreContract.ProductEntry.PRODUCT_TYPE_MAGAZINE:
+                case ProductEntry.PRODUCT_TYPE_MAGAZINE:
                     typeSpinner.setSelection(2);
                     break;
                 default:
@@ -318,6 +295,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.swapCursor(null);
+        nameText.setText("");
+        priceText.setText("");
+        quantityText.setText("");
+        typeSpinner.setSelection(0);
+        supplierNameText.setText("");
+        supplierPhoneText.setText("");
     }
 }

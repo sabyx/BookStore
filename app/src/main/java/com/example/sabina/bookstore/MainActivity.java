@@ -2,50 +2,32 @@ package com.example.sabina.bookstore;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 
-import com.example.sabina.bookstore.data.BookCursorAdapter;
-import com.example.sabina.bookstore.data.BookStoreContract;
 import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
-import com.example.sabina.bookstore.data.BookStoreDbHelper;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int URI_LOADER = 0;
 
-    private BookCursorAdapter adapter;
-    private String[] projection = {
-            ProductEntry._ID,
-            ProductEntry.PRODUCT_NAME_COLUMN,
-            ProductEntry.PRICE_COLUMN,
-            ProductEntry.QUANTITY_COLUMN,
-            ProductEntry.PRODUCT_TYPE_COLUMN,
-            ProductEntry.SUPPLIER_NAME_COLUMN,
-            ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN
-    };
-
-    ListView bookListView;
+    BookCursorAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -63,8 +45,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //            }
 //        });
 
-        bookListView = findViewById(R.id.list_view_books);
-        RelativeLayout emptyView = findViewById(R.id.empty_view);
+        ListView bookListView = (ListView) findViewById(R.id.list_view_books);
+
+        View emptyView = findViewById(R.id.empty_view);
         bookListView.setEmptyView(emptyView);
 
         adapter = new BookCursorAdapter(this, null);
@@ -94,10 +77,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //        ContentValues values = new ContentValues();
 //        values.put(ProductEntry.PRODUCT_NAME_COLUMN, "Are your lights on?");
 //        values.put(ProductEntry.PRODUCT_TYPE_COLUMN, ProductEntry.PRODUCT_TYPE_BOOK);
-//        values.put(ProductEntry.PRICE_COLUMN, 1399);
-//        values.put(ProductEntry.QUANTITY_COLUMN, 5);
-//        values.put(ProductEntry.SUPPLIER_NAME_COLUMN, "Dorset House Publishing");
-//        values.put(ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN, "0700512368");
+//        values.put(ProductEntry.PRODUCT_PRICE_COLUMN, 1399);
+//        values.put(ProductEntry.PRODUCT_QUANTITY_COLUMN, 5);
+//        values.put(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN, "Dorset House Publishing");
+//        values.put(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN, "0700512368");
 //
 //        long id = database.insert(ProductEntry.TABLE_NAME, null, values);
 //    }
@@ -107,8 +90,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //
 //        String[] projection = {
 //                ProductEntry._ID, ProductEntry.PRODUCT_NAME_COLUMN, ProductEntry.PRODUCT_TYPE_COLUMN,
-//                ProductEntry.PRICE_COLUMN, ProductEntry.QUANTITY_COLUMN, ProductEntry.SUPPLIER_NAME_COLUMN,
-//                ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN
+//                ProductEntry.PRODUCT_PRICE_COLUMN, ProductEntry.PRODUCT_QUANTITY_COLUMN, ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN,
+//                ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN
 //        };
 //
 //        try (Cursor cursor = database.query(ProductEntry.TABLE_NAME, projection, null, null,
@@ -116,10 +99,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //            int idColumnIndex = cursor.getColumnIndex(ProductEntry._ID);
 //            int productNameColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_NAME_COLUMN);
 //            int productTypeColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_TYPE_COLUMN);
-//            int priceColumnIndex = cursor.getColumnIndex(ProductEntry.PRICE_COLUMN);
-//            int quantityColumnIndex = cursor.getColumnIndex(ProductEntry.QUANTITY_COLUMN);
-//            int supplierNameColumnIndex = cursor.getColumnIndex(ProductEntry.SUPPLIER_NAME_COLUMN);
-//            int supplierPhoneNumberColumnIndex = cursor.getColumnIndex(ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN);
+//            int priceColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_PRICE_COLUMN);
+//            int quantityColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_QUANTITY_COLUMN);
+//            int supplierNameColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN);
+//            int supplierPhoneNumberColumnIndex = cursor.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN);
 //
 //            while (cursor.moveToNext()) {
 //                int id = cursor.getInt(idColumnIndex);
@@ -151,15 +134,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        switch (id) {
-            case URI_LOADER:
-                return new CursorLoader(this, ProductEntry.CONTENT_URI, projection,
+//        switch (id) {
+//            case URI_LOADER:
+                return new CursorLoader(this, ProductEntry.CONTENT_URI, ProductEntry.MAIN_PROJECTION,
                         null,
                         null,
                         null
                 );
-        }
-        return null;
+//        }
+//        return null;
     }
 
     @Override

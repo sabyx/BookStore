@@ -1,4 +1,4 @@
-package com.example.sabina.bookstore.data;
+package com.example.sabina.bookstore;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -7,13 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
-
 import com.example.sabina.bookstore.R;
+import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
 
 public class BookCursorAdapter extends CursorAdapter {
 
     public BookCursorAdapter(Context context, Cursor c) {
-        super(context, c, FLAG_REGISTER_CONTENT_OBSERVER);
+        super(context, c, 0);
     }
 
     @Override
@@ -23,13 +23,13 @@ public class BookCursorAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        TextView nameText = view.findViewById(R.id.name);
-        TextView priceText = view.findViewById(R.id.summary_price);
-        TextView quantityText = view.findViewById(R.id.summary_quantity);
+        TextView nameText = (TextView) view.findViewById(R.id.name);
+        TextView priceText = (TextView) view.findViewById(R.id.summary_price);
+        TextView quantityText = (TextView) view.findViewById(R.id.summary_quantity);
 
-        String name = cursor.getString(cursor.getColumnIndexOrThrow(BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN));
-        int price = cursor.getInt(cursor.getColumnIndexOrThrow(BookStoreContract.ProductEntry.PRICE_COLUMN));
-        int quantity = cursor.getInt(cursor.getColumnIndexOrThrow(BookStoreContract.ProductEntry.QUANTITY_COLUMN));
+        String name = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.PRODUCT_NAME_COLUMN));
+        int price = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.PRODUCT_PRICE_COLUMN));
+        int quantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.PRODUCT_QUANTITY_COLUMN));
 
         nameText.setText(name);
         priceText.setText(String.valueOf(price));

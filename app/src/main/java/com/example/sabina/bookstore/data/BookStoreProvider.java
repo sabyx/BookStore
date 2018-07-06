@@ -7,20 +7,19 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
 
 public class BookStoreProvider extends ContentProvider {
 
     private static final int BOOKS = 100;
-    private static final int BOOKS_ID = 101;
+    private static final int BOOK_ID = 101;
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     private BookStoreDbHelper helper;
 
     static {
         sUriMatcher.addURI(BookStoreContract.CONTENT_AUTHORITY, BookStoreContract.PATH_BOOKS, BOOKS);
-        sUriMatcher.addURI(BookStoreContract.CONTENT_AUTHORITY, BookStoreContract.PATH_BOOKS + "/#", BOOKS_ID);
+        sUriMatcher.addURI(BookStoreContract.CONTENT_AUTHORITY, BookStoreContract.PATH_BOOKS + "/#", BOOK_ID);
     }
 
     @Override
@@ -29,23 +28,22 @@ public class BookStoreProvider extends ContentProvider {
         return true;
     }
 
-    @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase database = helper.getReadableDatabase();
         Cursor cursor;
 
         int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
-                cursor = database.query(BookStoreContract.ProductEntry.TABLE_NAME, projection, selection,
+                cursor = database.query(ProductEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder);
                 break;
-            case BOOKS_ID:
-                selection = BookStoreContract.ProductEntry._ID + "=?";
+            case BOOK_ID:
+                selection = ProductEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
 
-                cursor = database.query(BookStoreContract.ProductEntry.TABLE_NAME, projection, selection, selectionArgs,
+                cursor = database.query(ProductEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
                 break;
             default:
@@ -56,23 +54,21 @@ public class BookStoreProvider extends ContentProvider {
         return cursor;
     }
 
-    @Nullable
     @Override
-    public String getType(@NonNull Uri uri) {
+    public String getType(Uri uri) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
-                return BookStoreContract.ProductEntry.CONTENT_LIST_TYPE;
-            case BOOKS_ID:
-                return BookStoreContract.ProductEntry.CONTENT_ITEM_TYPE;
+                return ProductEntry.CONTENT_LIST_TYPE;
+            case BOOK_ID:
+                return ProductEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
         }
     }
 
-    @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+    public Uri insert(Uri uri, ContentValues values) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
@@ -83,8 +79,6 @@ public class BookStoreProvider extends ContentProvider {
     }
 
     private Uri insertProduct(Uri uri, ContentValues values) {
-        SQLiteDatabase database = helper.getWritableDatabase();
-
         validateName(values);
         validatePrice(values);
         validateQuantity(values);
@@ -92,67 +86,71 @@ public class BookStoreProvider extends ContentProvider {
         validateSupplierName(values);
         validateSupplierPhone(values);
 
-        long id = database.insert(BookStoreContract.ProductEntry.TABLE_NAME, null, values);
+        SQLiteDatabase database = helper.getWritableDatabase();
+        long id = database.insert(ProductEntry.TABLE_NAME, null, values);
         getContext().getContentResolver().notifyChange(uri, null);
         return ContentUris.withAppendedId(uri, id);
     }
 
     private void validateSupplierPhone(ContentValues values) {
-        String supplierPhone = values.getAsString(BookStoreContract.ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN);
+        String supplierPhone = values.getAsString(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN);
         if (supplierPhone == null) {
             throw new IllegalArgumentException("Product requires a supplier phone");
         }
     }
 
     private void validateSupplierName(ContentValues values) {
-        String supplierName = values.getAsString(BookStoreContract.ProductEntry.SUPPLIER_NAME_COLUMN);
+        String supplierName = values.getAsString(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN);
         if (supplierName == null) {
             throw new IllegalArgumentException("Product requires a supplier name");
         }
     }
 
     private void validateType(ContentValues values) {
-        int type = values.getAsInteger(BookStoreContract.ProductEntry.PRODUCT_TYPE_COLUMN);
-        if (type != BookStoreContract.ProductEntry.PRODUCT_TYPE_BOOK
-                && type != BookStoreContract.ProductEntry.PRODUCT_TYPE_MAGAZINE
-                && type != BookStoreContract.ProductEntry.PRODUCT_TYPE_UNKNOWN) {
+        int type = values.getAsInteger(ProductEntry.PRODUCT_TYPE_COLUMN);
+        if (type != ProductEntry.PRODUCT_TYPE_BOOK
+                && type != ProductEntry.PRODUCT_TYPE_MAGAZINE
+                && type != ProductEntry.PRODUCT_TYPE_UNKNOWN) {
             throw new IllegalArgumentException("Product type can be 0, 1, 2");
         }
     }
 
     private void validateQuantity(ContentValues values) {
-        int quantity = values.getAsInteger(BookStoreContract.ProductEntry.QUANTITY_COLUMN);
+        int quantity = values.getAsInteger(ProductEntry.PRODUCT_QUANTITY_COLUMN);
         if (quantity <= 0) {
             throw new IllegalArgumentException("Product requires a quantity");
         }
     }
 
     private void validatePrice(ContentValues values) {
-        int price = values.getAsInteger(BookStoreContract.ProductEntry.PRICE_COLUMN);
+        int price = values.getAsInteger(ProductEntry.PRODUCT_PRICE_COLUMN);
         if (price <= 0) {
             throw new IllegalArgumentException("Product requires a price");
         }
     }
 
     private void validateName(ContentValues values) {
-        String name = values.getAsString(BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN);
+        String name = values.getAsString(ProductEntry.PRODUCT_NAME_COLUMN);
         if (name == null) {
             throw new IllegalArgumentException("Product requires a name");
         }
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase database = helper.getWritableDatabase();
 
-        int rowsDeleted = 0;
-        final int match = sUriMatcher.match(uri);
+        int rowsDeleted;
 
+        final int match = sUriMatcher.match(uri);
         switch (match) {
-            case BOOKS_ID:
-                selection = BookStoreContract.ProductEntry._ID + "=?";
+            case BOOKS:
+                rowsDeleted = database.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case BOOK_ID:
+                selection = ProductEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                rowsDeleted = database.delete(BookStoreContract.ProductEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
@@ -166,57 +164,54 @@ public class BookStoreProvider extends ContentProvider {
     }
 
     @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-        int rowsUpdated = 0;
-
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
-                rowsUpdated = updateProduct(uri, values, selection, selectionArgs);
-                break;
-            case BOOKS_ID:
-                selection = BookStoreContract.ProductEntry._ID + "=?";
+                return updateProduct(uri, values, selection, selectionArgs);
+            case BOOK_ID:
+                selection = ProductEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                rowsUpdated = updateProduct(uri, values, selection, selectionArgs);
-                break;
+                return updateProduct(uri, values, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Update is not supported for " + uri);
         }
-
-        if (rowsUpdated != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
-
-        return rowsUpdated;
     }
 
     private int updateProduct(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        SQLiteDatabase database = helper.getWritableDatabase();
-
-        if (values.containsKey(BookStoreContract.ProductEntry.PRODUCT_NAME_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_NAME_COLUMN)) {
             validateName(values);
         }
 
-        if (values.containsKey(BookStoreContract.ProductEntry.PRICE_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_PRICE_COLUMN)) {
             validatePrice(values);
         }
 
-        if (values.containsKey(BookStoreContract.ProductEntry.QUANTITY_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_QUANTITY_COLUMN)) {
             validateQuantity(values);
         }
 
-        if (values.containsKey(BookStoreContract.ProductEntry.PRODUCT_TYPE_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_TYPE_COLUMN)) {
             validateType(values);
         }
 
-        if (values.containsKey(BookStoreContract.ProductEntry.SUPPLIER_NAME_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN)) {
             validateSupplierName(values);
         }
 
-        if (values.containsKey(BookStoreContract.ProductEntry.SUPPLIER_PHONE_NUMBER_COLUMN)) {
+        if (values.containsKey(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN)) {
             validateSupplierPhone(values);
         }
 
-        return database.update(BookStoreContract.ProductEntry.TABLE_NAME, values, selection, selectionArgs);
+        if (values.size() == 0) {
+            return 0;
+        }
+
+        SQLiteDatabase database = helper.getWritableDatabase();
+        int rowsUpdated = database.update(ProductEntry.TABLE_NAME, values, selection, selectionArgs);
+        if (rowsUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsUpdated;
     }
 }
