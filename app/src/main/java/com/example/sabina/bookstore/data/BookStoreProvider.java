@@ -1,12 +1,10 @@
 package com.example.sabina.bookstore.data;
 
-import android.content.ContentProvider;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
 
 public class BookStoreProvider extends ContentProvider {
@@ -16,6 +14,7 @@ public class BookStoreProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     private BookStoreDbHelper helper;
+    private Context context;
 
     static {
         sUriMatcher.addURI(BookStoreContract.CONTENT_AUTHORITY, BookStoreContract.PATH_BOOKS, BOOKS);
@@ -25,11 +24,12 @@ public class BookStoreProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         helper = new BookStoreDbHelper(getContext());
+        context = getContext();
         return true;
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase database = helper.getReadableDatabase();
         Cursor cursor;
 
@@ -50,12 +50,14 @@ public class BookStoreProvider extends ContentProvider {
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
 
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        if (context != null) {
+            cursor.setNotificationUri(context.getContentResolver(), uri);
+        }
         return cursor;
     }
 
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
@@ -68,7 +70,7 @@ public class BookStoreProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
@@ -88,8 +90,14 @@ public class BookStoreProvider extends ContentProvider {
 
         SQLiteDatabase database = helper.getWritableDatabase();
         long id = database.insert(ProductEntry.TABLE_NAME, null, values);
-        getContext().getContentResolver().notifyChange(uri, null);
+        notifyContext(uri);
         return ContentUris.withAppendedId(uri, id);
+    }
+
+    private void notifyContext(Uri uri) {
+        if (context != null) {
+            context.getContentResolver().notifyChange(uri, null);
+        }
     }
 
     private void validateSupplierPhone(ContentValues values) {
@@ -137,7 +145,7 @@ public class BookStoreProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase database = helper.getWritableDatabase();
 
         int rowsDeleted;
@@ -157,14 +165,14 @@ public class BookStoreProvider extends ContentProvider {
         }
 
         if (rowsDeleted != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            notifyContext(uri);
         }
 
         return rowsDeleted;
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
@@ -210,7 +218,7 @@ public class BookStoreProvider extends ContentProvider {
         SQLiteDatabase database = helper.getWritableDatabase();
         int rowsUpdated = database.update(ProductEntry.TABLE_NAME, values, selection, selectionArgs);
         if (rowsUpdated != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            notifyContext(uri);
         }
         return rowsUpdated;
     }

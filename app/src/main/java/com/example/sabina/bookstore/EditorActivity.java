@@ -1,16 +1,12 @@
 package com.example.sabina.bookstore;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.*;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -18,7 +14,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.*;
 import com.example.sabina.bookstore.data.BookStoreContract.ProductEntry;
@@ -42,8 +37,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private String supplierPhone;
 
     private Uri currentProductUri;
-    private BookCursorAdapter adapter;
-
     private boolean productHasChanged = false;
     private boolean productLoaded = false;
     private int productType = ProductEntry.PRODUCT_TYPE_UNKNOWN;
@@ -55,7 +48,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         Intent intent = getIntent();
         currentProductUri = intent.getData();
-        adapter = new BookCursorAdapter(this, null);
 
         setupMode();
         initViews();
