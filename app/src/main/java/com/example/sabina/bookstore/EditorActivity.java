@@ -1,5 +1,6 @@
 package com.example.sabina.bookstore;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.*;
@@ -9,7 +10,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -28,10 +31,18 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private EditText supplierNameText;
     private EditText supplierPhoneText;
 
+    private String name;
+    private int price;
+    private int quantity;
+    private int type;
+    private String supplierName;
+    private String supplierPhone;
+
     private Uri currentProductUri;
     private BookCursorAdapter adapter;
 
     private boolean productHasChanged = false;
+    private boolean productLoaded = false;
     private int productType = ProductEntry.PRODUCT_TYPE_UNKNOWN;
 
     @Override
@@ -93,19 +104,58 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         supplierNameText = (EditText) findViewById(R.id.edit_supplier_name);
         supplierPhoneText = (EditText) findViewById(R.id.edit_supplier_phone);
 
-        View.OnTouchListener touchListener = new View.OnTouchListener() {
+        TextWatcher textWatcher = new TextWatcher() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                productHasChanged = true;
-                return false;
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (productLoaded) {
+                    decideChanged();
+                }
             }
         };
-        nameText.setOnTouchListener(touchListener);
-        priceText.setOnTouchListener(touchListener);
-        quantityText.setOnTouchListener(touchListener);
-        typeSpinner.setOnTouchListener(touchListener);
-        supplierNameText.setOnTouchListener(touchListener);
-        supplierPhoneText.setOnTouchListener(touchListener);
+        AdapterView.OnItemSelectedListener spinnerChangeListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (productLoaded) {
+                    decideChanged();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        };
+
+        nameText.addTextChangedListener(textWatcher);
+        priceText.addTextChangedListener(textWatcher);
+        quantityText.addTextChangedListener(textWatcher);
+        typeSpinner.setOnItemSelectedListener(spinnerChangeListener);
+        supplierNameText.addTextChangedListener(textWatcher);
+        supplierPhoneText.addTextChangedListener(textWatcher);
+    }
+
+    private void decideChanged() {
+        boolean nameChanged = !nameText.getText().toString().equals(name);
+        String priceString = priceText.getText().toString();
+        if (priceString.isEmpty()) {
+            priceString = "0";
+        }
+        boolean priceChanged = Integer.parseInt(priceString) != price;
+        String quantityString = quantityText.getText().toString();
+        if (quantityString.isEmpty()) {
+            quantityString = "0";
+        }
+        boolean quantityChanged = Integer.parseInt(quantityString) != quantity;
+        boolean typeChanged = typeSpinner.getSelectedItemPosition() != type;
+        boolean supplierNameChanged = !supplierNameText.getText().toString().equals(supplierName);
+        boolean supplierPhoneChanged = !supplierPhoneText.getText().toString().equals(supplierPhone);
+
+        productHasChanged = nameChanged || priceChanged || quantityChanged || typeChanged || supplierNameChanged
+                || supplierPhoneChanged;
     }
 
     @Override
@@ -198,7 +248,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             quantity = Integer.parseInt(quantityString);
         }
 
-        if (currentProductUri == null || TextUtils.isEmpty(name) || TextUtils.isEmpty(supplierName)
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(supplierName)
                 || price <= 0 || quantity <= 0 || TextUtils.isEmpty(supplierPhone)) {
             return false;
         }
@@ -266,12 +316,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             int supplierNameColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_NAME_COLUMN);
             int supplierPhoneColumnIndex = data.getColumnIndex(ProductEntry.PRODUCT_SUPPLIER_PHONE_NUMBER_COLUMN);
 
-            String name = data.getString(nameColumnIndex);
-            int price = data.getInt(priceColumnIndex);
-            int quantity = data.getInt(quantityColumnIndex);
-            int type = data.getInt(typeColumnIndex);
-            String supplierName = data.getString(supplierNameColumnIndex);
-            String supplierPhone = data.getString(supplierPhoneColumnIndex);
+            name = data.getString(nameColumnIndex);
+            price = data.getInt(priceColumnIndex);
+            quantity = data.getInt(quantityColumnIndex);
+            type = data.getInt(typeColumnIndex);
+            supplierName = data.getString(supplierNameColumnIndex);
+            supplierPhone = data.getString(supplierPhoneColumnIndex);
 
             nameText.setText(name);
             priceText.setText(String.valueOf(price));
@@ -290,11 +340,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     typeSpinner.setSelection(0);
                     break;
             }
+
+            productLoaded = true;
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        productLoaded = false;
+
         nameText.setText("");
         priceText.setText("");
         quantityText.setText("");
