@@ -46,8 +46,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        Intent intent = getIntent();
-        currentProductUri = intent.getData();
+        currentProductUri = getIntent().getData();
 
         setupMode();
         initViews();
