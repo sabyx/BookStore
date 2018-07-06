@@ -40,4 +40,12 @@
     <string name="editor_update_product_failed">Updating product failed</string>
     <string name="editor_update_product_successful">Product updated</string>
     <string name="editor_update_product_quantity_low">Product is out of stock, can\'t sale</string>
+    <string name="editor_delete_new_product">Cannot delete product, it must be added first</string>
+
+    <string name="delete_dialog_msg">Delete this product?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="editor_delete_product_successful">Product deleted</string>
+    <string name="editor_delete_product_failed">Error with deleting product</string>
 </resources>

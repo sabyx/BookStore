@@ -1,13 +1,16 @@
 package com.example.sabina.bookstore;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -57,6 +60,89 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         setupMode();
         initViews();
         setupSpinner();
+        setupButtons();
+    }
+
+    private void setupButtons() {
+        Button decreaseQuantityButton = (Button) findViewById(R.id.quantity_minus);
+        decreaseQuantityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int quantity = getQuantity();
+                if (quantity > 0) {
+                    quantityText.setText(String.valueOf(quantity - 1));
+                }
+            }
+        });
+
+        Button increaseQuantityButton = (Button) findViewById(R.id.quantity_plus);
+        increaseQuantityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int quantity = getQuantity();
+                quantityText.setText(String.valueOf(quantity + 1));
+            }
+        });
+
+        Button orderButton = (Button) findViewById(R.id.order);
+        orderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String phone = supplierPhoneText.getText().toString();
+                if (!phone.isEmpty()) {
+                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                    intent.setData(Uri.parse("tel:" + phone));
+                    startActivity(intent);
+                }
+            }
+        });
+
+        Button deleteButton = (Button) findViewById(R.id.delete);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (currentProductUri != null) {
+                    showDeleteConfirmationDialog();
+                } else {
+                    Toast.makeText(EditorActivity.this, getString(R.string.editor_delete_new_product),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void showDeleteConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                deleteProduct();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    private void deleteProduct() {
+        if (currentProductUri != null) {
+            int rowsDeleted = getContentResolver().delete(currentProductUri, null, null);
+            if (rowsDeleted == 0) {
+                Toast.makeText(this, getString(R.string.editor_delete_product_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.editor_delete_product_successful),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        finish();
     }
 
     private void setupSpinner() {
@@ -90,6 +176,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private void setupMode() {
         if (currentProductUri == null) {
             setTitle(R.string.editor_view_add_product);
+            productLoaded = true;
         } else {
             setTitle(R.string.editor_view_edit_product);
             getLoaderManager().initLoader(URI_LOADER, null, this);
@@ -233,20 +320,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private boolean saveProduct() {
         String name = nameText.getText().toString().trim();
-        int price = 0;
-        int quantity = 0;
+        int price = getPrice();
+        int quantity = getQuantity();
         String supplierName = supplierNameText.getText().toString().trim();
         String supplierPhone = supplierPhoneText.getText().toString().trim();
-
-        String priceString = priceText.getText().toString().trim();
-        if (!TextUtils.isEmpty(priceString)) {
-            price = Integer.parseInt(priceString);
-        }
-
-        String quantityString = quantityText.getText().toString().trim();
-        if (!TextUtils.isEmpty(quantityString)) {
-            quantity = Integer.parseInt(quantityString);
-        }
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(supplierName)
                 || price <= 0 || quantity <= 0 || TextUtils.isEmpty(supplierPhone)) {
@@ -282,6 +359,24 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         return true;
+    }
+
+    private int getQuantity() {
+        int quantity = 0;
+        String quantityString = quantityText.getText().toString().trim();
+        if (!TextUtils.isEmpty(quantityString)) {
+            quantity = Integer.parseInt(quantityString);
+        }
+        return quantity;
+    }
+
+    private int getPrice() {
+        int price = 0;
+        String priceString = priceText.getText().toString().trim();
+        if (!TextUtils.isEmpty(priceString)) {
+            price = Integer.parseInt(priceString);
+        }
+        return price;
     }
 
     @Override
