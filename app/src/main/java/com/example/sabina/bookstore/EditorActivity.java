@@ -286,18 +286,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-//        switch (id) {
-//            case URI_LOADER:
-//                if (currentProductUri == null) {
-//                    return new CursorLoader(this, ProductEntry.CONTENT_URI,
-//                            ProductEntry.EDITOR_PROJECTION, null, null, null);
-//                } else {
-//                    return new CursorLoader(this, currentProductUri, ProductEntry.EDITOR_PROJECTION,
-//                            null, null, null);
-//                }
-//        }
-//        return null;
-
         return new CursorLoader(this, currentProductUri, ProductEntry.EDITOR_PROJECTION,
                 null, null, null);
     }

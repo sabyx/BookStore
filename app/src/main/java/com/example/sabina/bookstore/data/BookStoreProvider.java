@@ -117,7 +117,7 @@ public class BookStoreProvider extends ContentProvider {
 
     private void validateQuantity(ContentValues values) {
         int quantity = values.getAsInteger(ProductEntry.PRODUCT_QUANTITY_COLUMN);
-        if (quantity <= 0) {
+        if (quantity < 0) {
             throw new IllegalArgumentException("Product requires a quantity");
         }
     }
