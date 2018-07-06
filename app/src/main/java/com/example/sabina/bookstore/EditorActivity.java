@@ -59,7 +59,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         decreaseQuantityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int quantity = getQuantity();
+                int quantity = getQuantityFromText();
                 if (quantity > 0) {
                     quantityText.setText(String.valueOf(quantity - 1));
                 }
@@ -70,7 +70,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         increaseQuantityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int quantity = getQuantity();
+                int quantity = getQuantityFromText();
                 quantityText.setText(String.valueOf(quantity + 1));
             }
         });
@@ -311,8 +311,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private boolean saveProduct() {
         String name = nameText.getText().toString().trim();
-        int price = getPrice();
-        int quantity = getQuantity();
+        int price = getPriceFromText();
+        int quantity = getQuantityFromText();
         String supplierName = supplierNameText.getText().toString().trim();
         String supplierPhone = supplierPhoneText.getText().toString().trim();
 
@@ -352,7 +352,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return true;
     }
 
-    private int getQuantity() {
+    private int getQuantityFromText() {
         int quantity = 0;
         String quantityString = quantityText.getText().toString().trim();
         if (!TextUtils.isEmpty(quantityString)) {
@@ -361,7 +361,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return quantity;
     }
 
-    private int getPrice() {
+    private int getPriceFromText() {
         int price = 0;
         String priceString = priceText.getText().toString().trim();
         if (!TextUtils.isEmpty(priceString)) {
