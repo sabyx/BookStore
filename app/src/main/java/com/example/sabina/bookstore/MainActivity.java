@@ -46,13 +46,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //        });
 
         ListView bookListView = (ListView) findViewById(R.id.list_view_books);
-
-        View emptyView = findViewById(R.id.empty_view);
-        bookListView.setEmptyView(emptyView);
-
         adapter = new BookCursorAdapter(this, null);
         bookListView.setAdapter(adapter);
-
+        bookListView.setEmptyView(findViewById(R.id.empty_view));
         bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
